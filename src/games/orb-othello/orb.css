@@ -1,0 +1,237 @@
+/* Orb Othello HUD. Everything is scoped under .orb so other games keep the default theme.
+   Look: thin glass panels with a lavender hairline, Orbitron for anything that is a number or a title,
+   the two side colours (ember gold, frost cyan) as the only saturated UI colours. */
+@font-face {
+  font-family: 'Orbitron';
+  src: url('/assets/fonts/orbitron/Orbitron[wght].ttf') format('truetype');
+  font-weight: 400 900;
+  font-display: block;
+}
+
+.orb {
+  --ember: #ffb02e;
+  --frost: #5fe3ff;
+  --ink: #e9ecff;
+  --dim: #9097c4;
+  --glass: rgba(9, 8, 26, 0.58);
+  --edge: rgba(170, 150, 255, 0.24);
+  --hair: rgba(255, 255, 255, 0.07);
+  --display: 'Orbitron', system-ui, sans-serif;
+  --ease: cubic-bezier(0.2, 0.9, 0.3, 1);
+  color: var(--ink);
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+.orb button { font: inherit; color: inherit; cursor: pointer; }
+.orb-hidden { opacity: 0 !important; pointer-events: none !important; transform: translateY(-6px) !important; }
+.orb-score, .orb-turn, .orb-tools, .orb-chips, .orb-ticker, .orb-help { transition: opacity 0.5s var(--ease), transform 0.5s var(--ease); }
+/* a soft vignette drawn by the browser, not a post pass: free on every quality level */
+.orb-vignette { position: fixed; inset: 0; pointer-events: none; background: radial-gradient(ellipse 75% 70% at 50% 50%, transparent 55%, rgba(2, 1, 10, 0.55) 100%); }
+
+/* ---------- scoreboard ---------- */
+.orb-score { position: fixed; top: 14px; left: 50%; transform: translateX(-50%); pointer-events: none; filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.45)); }
+.orb-score.orb-hidden { transform: translate(-50%, -8px) !important; }
+.orb-score-row { display: flex; align-items: stretch; }
+.orb-side {
+  display: flex; align-items: center; gap: 12px; padding: 9px 18px; min-width: 196px;
+  background: var(--glass); border: 1px solid var(--edge); backdrop-filter: blur(10px);
+  box-shadow: inset 0 1px 0 var(--hair);
+  transition: box-shadow 0.35s, border-color 0.35s, opacity 0.35s; opacity: 0.62;
+}
+.orb-side.ember { border-radius: 16px 0 0 4px; justify-content: flex-end; text-align: right; }
+.orb-side.frost { border-radius: 0 16px 4px 0; border-left: none; }
+.orb-side.active { opacity: 1; }
+.orb-side.ember.active { border-color: rgba(255, 176, 46, 0.8); box-shadow: inset 0 0 22px rgba(255, 176, 46, 0.2), 0 0 26px rgba(255, 176, 46, 0.3); }
+.orb-side.frost.active { border-color: rgba(95, 227, 255, 0.8); box-shadow: inset 0 0 22px rgba(95, 227, 255, 0.18), 0 0 26px rgba(95, 227, 255, 0.3); }
+.orb-name { font-family: var(--display); font-size: 12px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--dim); }
+.orb-side.active .orb-name { color: var(--ink); }
+.orb-who { font-size: 11px; color: var(--dim); opacity: 0.85; margin-top: 2px; }
+.orb-count { font-family: var(--display); font-weight: 800; font-size: 34px; line-height: 1; min-width: 2.2ch; text-align: center; font-variant-numeric: tabular-nums; }
+.ember .orb-count { color: var(--ember); text-shadow: 0 0 14px rgba(255, 176, 46, 0.65); }
+.frost .orb-count { color: var(--frost); text-shadow: 0 0 14px rgba(95, 227, 255, 0.65); }
+.orb-count.bump { animation: orb-bump 0.25s ease-out; }
+@keyframes orb-bump { 40% { transform: scale(1.22); } }
+.orb-chip { width: 26px; height: 26px; border-radius: 50%; flex: none; }
+.ember .orb-chip { background: radial-gradient(circle at 35% 35%, #fff3c4, var(--ember) 45%, #a35a00); box-shadow: 0 0 14px var(--ember); }
+.frost .orb-chip { background: radial-gradient(circle at 35% 35%, #ffffff, var(--frost) 45%, #0a6a9a); box-shadow: 0 0 14px var(--frost); }
+/* territory bar: how much of the planet each side holds (the rest is still free) */
+.orb-bar { position: relative; height: 4px; margin: 4px 6px 0; border-radius: 4px; background: rgba(255, 255, 255, 0.07); overflow: hidden; }
+.orb-bar i { position: absolute; top: 0; bottom: 0; transition: width 0.45s var(--ease); }
+.orb-bar .e { left: 0; background: linear-gradient(90deg, #a35a00, var(--ember)); box-shadow: 0 0 8px var(--ember); }
+.orb-bar .f { right: 0; background: linear-gradient(270deg, #0a6a9a, var(--frost)); box-shadow: 0 0 8px var(--frost); }
+.orb-bar b { position: absolute; top: -2px; bottom: -2px; width: 2px; margin-left: -1px; background: #fff; opacity: 0.0; }
+
+.orb-turn {
+  position: fixed; top: 96px; left: 50%; transform: translateX(-50%); pointer-events: none;
+  font-family: var(--display); font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; white-space: nowrap;
+  padding: 6px 16px; border-radius: 99px; background: rgba(9, 8, 26, 0.5); border: 1px solid var(--edge); color: var(--ink);
+}
+.orb-turn.orb-hidden { transform: translate(-50%, -8px) !important; }
+.orb-turn[data-p='1'] { color: var(--ember); border-color: rgba(255, 176, 46, 0.45); }
+.orb-turn[data-p='2'] { color: var(--frost); border-color: rgba(95, 227, 255, 0.45); }
+.orb-turn.swap { animation: orb-swap 0.35s var(--ease); }
+@keyframes orb-swap { from { opacity: 0; letter-spacing: 0.32em; } }
+.orb-turn .dots::after { content: ''; animation: orb-dots 1.2s steps(4) infinite; }
+@keyframes orb-dots { 0% { content: ''; } 25% { content: '.'; } 50% { content: '..'; } 75% { content: '...'; } }
+
+/* ---------- cosmic rule chips + tooltip ---------- */
+.orb-chips { position: fixed; top: 16px; left: 16px; display: flex; flex-direction: column; gap: 6px; pointer-events: auto; }
+.orb-rchip {
+  display: flex; align-items: center; gap: 8px; padding: 6px 12px 6px 8px; border-radius: 10px; cursor: help;
+  background: var(--glass); border: 1px solid var(--edge); backdrop-filter: blur(8px); font-size: 12px;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.orb-rchip .ic { width: 18px; height: 18px; color: #c9bfff; }
+.orb-rchip .nm { font-family: var(--display); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; }
+.orb-rchip .st { color: var(--dim); font-size: 11px; margin-left: 4px; }
+.orb-rchip.alert { border-color: rgba(255, 140, 90, 0.8); box-shadow: 0 0 16px rgba(255, 120, 70, 0.35); }
+.orb-rchip.alert .st { color: #ffb08a; }
+.orb svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.orb-tip {
+  position: fixed; max-width: 280px; padding: 10px 12px; border-radius: 10px; pointer-events: none; z-index: 5;
+  background: rgba(14, 10, 38, 0.94); border: 1px solid var(--edge); font-size: 12.5px; line-height: 1.5; color: var(--dim);
+  opacity: 0; transform: translateY(-4px); transition: opacity 0.18s, transform 0.18s;
+}
+.orb-tip b { display: block; color: var(--ink); font-family: var(--display); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 3px; }
+.orb-tip.on { opacity: 1; transform: none; }
+
+/* ---------- move ticker ---------- */
+.orb-ticker { position: fixed; right: 16px; top: 16px; width: 176px; display: flex; flex-direction: column; gap: 4px; pointer-events: none; }
+.orb-tick {
+  display: flex; align-items: center; gap: 8px; padding: 5px 10px; border-radius: 8px; font-size: 12px;
+  background: rgba(9, 8, 26, 0.45); border: 1px solid rgba(170, 150, 255, 0.12); animation: orb-tick 0.35s var(--ease);
+}
+.orb-tick:nth-child(n + 2) { opacity: 0.7; }
+.orb-tick:nth-child(n + 4) { opacity: 0.4; }
+.orb-tick i { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+.orb-tick.p1 i { background: var(--ember); box-shadow: 0 0 8px var(--ember); }
+.orb-tick.p2 i { background: var(--frost); box-shadow: 0 0 8px var(--frost); }
+.orb-tick span { font-family: var(--display); font-size: 11px; letter-spacing: 0.08em; }
+.orb-tick em { margin-left: auto; font-style: normal; color: var(--dim); font-size: 11px; white-space: nowrap; }
+@keyframes orb-tick { from { opacity: 0; transform: translateX(16px); } }
+
+/* ---------- toolbar ---------- */
+.orb-tools { position: fixed; left: 16px; bottom: 18px; display: flex; gap: 8px; align-items: center; }
+.orb .orb-tool {
+  display: flex; align-items: center; gap: 7px; padding: 8px 12px; border-radius: 12px;
+  background: var(--glass); border: 1px solid var(--edge); backdrop-filter: blur(8px); box-shadow: inset 0 1px 0 var(--hair);
+  font-family: var(--display); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+  transition: border-color 0.2s, background 0.2s, transform 0.1s;
+}
+.orb .orb-tool:hover { border-color: rgba(200, 185, 255, 0.7); background: rgba(40, 30, 90, 0.7); }
+.orb .orb-tool:active { transform: translateY(1px); }
+.orb .orb-tool.off { opacity: 0.5; }
+.orb-tool kbd { font: 10px var(--display); opacity: 0.55; border: 1px solid var(--edge); border-radius: 4px; padding: 1px 4px; }
+.orb-vol { width: 84px; accent-color: #9d8cff; cursor: pointer; }
+.orb-help {
+  position: fixed; bottom: 70px; left: 50%; transform: translateX(-50%); pointer-events: none;
+  font-size: 12px; transition: opacity 1s; color: var(--dim); letter-spacing: 0.04em; white-space: nowrap; text-shadow: 0 1px 4px #000;
+}
+
+/* ---------- banner (pass, ring closed, supernova, shift) ---------- */
+.orb-banner {
+  position: fixed; top: 36%; left: 50%; transform: translate(-50%, -50%); pointer-events: none;
+  font-family: var(--display); font-weight: 800; font-size: 30px; letter-spacing: 0.16em; text-transform: uppercase;
+  text-align: center; white-space: nowrap; animation: orb-banner 1.8s ease-out forwards;
+  text-shadow: 0 0 18px currentColor, 0 2px 6px #000;
+}
+.orb-banner.big { font-size: 46px; animation-duration: 2.3s; }
+.orb-banner small { display: block; font-size: 13px; letter-spacing: 0.24em; opacity: 0.85; margin-top: 6px; color: var(--ink); text-shadow: 0 1px 4px #000; }
+@keyframes orb-banner {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(1.4); letter-spacing: 0.4em; filter: blur(6px); }
+  14% { opacity: 1; transform: translate(-50%, -50%) scale(1); letter-spacing: 0.16em; filter: none; }
+  75% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -60%); }
+}
+
+/* ---------- start menu / end screen ---------- */
+.orb-overlay {
+  position: fixed; inset: 0; display: grid; place-items: center;
+  background: radial-gradient(ellipse at 50% 50%, rgba(5, 3, 20, 0.1), rgba(5, 3, 20, 0.6));
+  animation: orb-fade 0.5s ease-out;
+}
+.orb-overlay.leaving { animation: orb-out 0.38s ease-in forwards; }
+@keyframes orb-fade { from { opacity: 0; } }
+@keyframes orb-out { to { opacity: 0; transform: translateX(-30px); } }
+.orb-menu { place-items: center start; padding-left: max(24px, 5vw); background: linear-gradient(90deg, rgba(3, 2, 14, 0.82), rgba(3, 2, 14, 0.35) 45%, transparent 70%); }
+.orb-card {
+  width: min(460px, 92vw); max-height: 94vh; overflow: auto; padding: 28px 30px 22px; border-radius: 22px; text-align: center;
+  background: linear-gradient(180deg, rgba(24, 16, 64, 0.78), rgba(8, 6, 26, 0.84));
+  border: 1px solid var(--edge); backdrop-filter: blur(14px);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  animation: orb-rise 0.6s var(--ease);
+}
+.orb-menu .orb-card { width: min(680px, 92vw); text-align: left; }
+@keyframes orb-rise { from { transform: translateY(24px) scale(0.97); opacity: 0; } }
+.orb-kicker { font-family: var(--display); font-size: 10px; letter-spacing: 0.4em; text-transform: uppercase; color: var(--dim); margin-bottom: 8px; }
+.orb-title {
+  display: inline-block; margin: 0; font-family: var(--display); font-weight: 900; font-size: 46px; letter-spacing: 0.08em; line-height: 1.02;
+  background: linear-gradient(90deg, var(--ember), #fff2d6 48%, var(--frost)); -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 0 22px rgba(180, 150, 255, 0.35));
+}
+.orb-tag { margin: 10px 0 14px; color: var(--dim); font-size: 14px; line-height: 1.55; }
+.orb-tag b { color: var(--ink); font-weight: 600; }
+.orb-cols { display: grid; grid-template-columns: 1fr 1.15fr; gap: 22px; }
+.orb-field { margin: 10px 0; text-align: left; }
+.orb-label { font-family: var(--display); font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--dim); margin: 10px 0 6px; }
+.orb-label .dimmer { letter-spacing: 0.1em; opacity: 0.6; text-transform: none; font-family: system-ui, sans-serif; }
+.orb-seg { display: flex; padding: 3px; gap: 3px; border-radius: 12px; background: rgba(0, 0, 0, 0.35); border: 1px solid var(--edge); }
+.orb-seg button {
+  flex: 1; padding: 8px 4px; border: none; border-radius: 9px; background: transparent; font-size: 13px; color: var(--dim);
+  transition: background 0.2s, color 0.2s;
+}
+.orb-seg button:hover { color: var(--ink); }
+.orb-seg button.on { background: linear-gradient(180deg, rgba(140, 110, 255, 0.55), rgba(90, 60, 200, 0.55)); color: #fff; box-shadow: 0 0 14px rgba(140, 110, 255, 0.35); }
+.orb-seg button.ember.on { background: linear-gradient(180deg, rgba(255, 176, 46, 0.7), rgba(190, 100, 0, 0.6)); box-shadow: 0 0 14px rgba(255, 176, 46, 0.4); }
+.orb-seg button.frost.on { background: linear-gradient(180deg, rgba(95, 227, 255, 0.6), rgba(0, 110, 170, 0.6)); box-shadow: 0 0 14px rgba(95, 227, 255, 0.4); }
+.orb-field.hidden { display: none; }
+/* cosmic rule cards */
+.orb-rules { display: flex; flex-direction: column; gap: 6px; }
+.orb-rule {
+  display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 12px; text-align: left;
+  background: rgba(0, 0, 0, 0.3); border: 1px solid var(--edge); transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+.orb-rule:hover { border-color: rgba(200, 185, 255, 0.6); }
+.orb-rule .ic { width: 26px; height: 26px; flex: none; color: var(--dim); transition: color 0.2s; }
+.orb-rule .tx { flex: 1; }
+.orb-rule b { display: block; font-family: var(--display); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 600; }
+.orb-rule small { display: block; color: var(--dim); font-size: 11.5px; line-height: 1.4; margin-top: 2px; }
+.orb-rule .sw { width: 30px; height: 17px; border-radius: 9px; background: rgba(255, 255, 255, 0.12); position: relative; flex: none; transition: background 0.2s; }
+.orb-rule .sw::after { content: ''; position: absolute; top: 2px; left: 2px; width: 13px; height: 13px; border-radius: 50%; background: #bbb; transition: transform 0.2s var(--ease), background 0.2s; }
+.orb-rule.on { background: rgba(110, 80, 230, 0.2); border-color: rgba(170, 140, 255, 0.75); box-shadow: 0 0 18px rgba(140, 110, 255, 0.25); }
+.orb-rule.on .ic { color: #d9ceff; }
+.orb-rule.on .sw { background: linear-gradient(90deg, var(--ember), var(--frost)); }
+.orb-rule.on .sw::after { transform: translateX(13px); background: #fff; }
+.orb-go {
+  margin-top: 18px; width: 100%; padding: 14px; border: none; border-radius: 14px;
+  font-family: var(--display) !important; font-weight: 800; font-size: 16px !important; letter-spacing: 0.34em; text-transform: uppercase; color: #160d00 !important;
+  background: linear-gradient(90deg, var(--ember), #ffe3a3 50%, var(--frost));
+  box-shadow: 0 0 30px rgba(255, 200, 120, 0.35); transition: transform 0.1s, box-shadow 0.2s, filter 0.2s;
+}
+.orb-go:hover { box-shadow: 0 0 44px rgba(255, 220, 160, 0.6); filter: brightness(1.08); }
+.orb-go:active { transform: scale(0.98); }
+.orb-foot { margin-top: 10px; text-align: center; font-size: 11px; color: var(--dim); opacity: 0.7; letter-spacing: 0.04em; }
+.orb-ghost { margin-top: 10px; width: 100%; padding: 10px; border-radius: 12px; border: 1px solid var(--edge); background: transparent; font-family: var(--display); font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--dim); }
+.orb-ghost:hover { color: var(--ink); border-color: rgba(200, 185, 255, 0.7); }
+.orb-end { background: radial-gradient(ellipse at 50% 50%, rgba(5, 3, 20, 0), rgba(5, 3, 20, 0.55)); }
+.orb-final { display: flex; justify-content: center; align-items: center; gap: 22px; margin: 14px 0 4px; font-family: var(--display); font-weight: 800; font-size: 50px; }
+.orb-final .e { color: var(--ember); text-shadow: 0 0 18px rgba(255, 176, 46, 0.6); }
+.orb-final .f { color: var(--frost); text-shadow: 0 0 18px rgba(95, 227, 255, 0.6); }
+.orb-final i { font-style: normal; font-size: 18px; color: var(--dim); }
+.orb-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 8px; margin: 4px 0 4px; }
+.orb-stats div { padding: 8px 6px; border-radius: 10px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(170, 150, 255, 0.14); }
+.orb-stats b { display: block; font-family: var(--display); font-size: 20px; }
+.orb-stats span { font-size: 10.5px; color: var(--dim); letter-spacing: 0.06em; }
+
+@media (max-width: 900px) {
+  .orb-cols { grid-template-columns: 1fr; gap: 0; }
+  .orb-menu { place-items: center; padding-left: 0; }
+  .orb-ticker { display: none; }
+}
+@media (max-width: 700px) {
+  .orb-side { min-width: 130px; padding: 8px 12px; }
+  .orb-count { font-size: 26px; }
+  .orb-help, .orb-chips .nm { display: none; }
+  .orb-tool span { display: none; }
+}
+/* the wrapper lets clicks through to the planet; only real controls catch them */
+.orb-tools, .orb-overlay { pointer-events: auto; }

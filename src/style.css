@@ -1,0 +1,61 @@
+/* HUD / menu styling. Change the variables to re-theme every game at once,
+   or override classes from your game (import './style.css' inside your game folder). */
+:root {
+  --panel: rgba(16, 20, 40, 0.78);
+  --border: rgba(160, 170, 230, 0.28);
+  --text: #eef0ff;
+  --muted: #a3aad8;
+  --accent: #ffd166;
+  --radius: 12px;
+  --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font);
+  color: var(--text);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: #10131f; }
+#app { position: fixed; inset: 0; }
+#ui { position: fixed; inset: 0; pointer-events: none; }
+#ui > * { pointer-events: auto; }
+
+.ui-slot { position: absolute; display: flex; flex-direction: column; gap: 8px; padding: 14px; max-width: 46vw; }
+.ui-slot:empty { display: none; }
+.ui-top-left { top: 0; left: 0; }
+.ui-top-center { top: 0; left: 50%; transform: translateX(-50%); align-items: center; }
+.ui-top-right { top: 0; right: 0; align-items: flex-end; }
+.ui-bottom-left { bottom: 0; left: 0; }
+.ui-bottom-center { bottom: 0; left: 50%; transform: translateX(-50%); align-items: center; }
+.ui-bottom-right { bottom: 0; right: 0; align-items: flex-end; }
+.ui-center { top: 50%; left: 50%; transform: translate(-50%, -50%); align-items: center; }
+
+.ui-text { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 12px; font-size: 15px; line-height: 1.4; backdrop-filter: blur(6px); }
+.ui-big { font-size: 26px; font-weight: 700; }
+.ui-panel { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; min-width: 220px; display: flex; flex-direction: column; gap: 8px; backdrop-filter: blur(6px); }
+.ui-panel h2 { margin: 0; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.ui-row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+
+.ui-button, select {
+  font: inherit; font-size: 14px; color: var(--text); cursor: pointer;
+  background: rgba(255, 255, 255, 0.08); border: 1px solid var(--border); border-radius: 9px; padding: 7px 12px;
+}
+.ui-button:hover, select:hover { background: rgba(255, 255, 255, 0.16); }
+.ui-button:focus-visible { outline: 2px solid var(--accent); }
+.ui-button.active { border-color: var(--accent); color: var(--accent); }
+select option { background: #1a1f3d; }
+.ui-field { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); }
+
+.ui-bar { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 6px 10px; font-size: 13px; display: flex; align-items: center; gap: 8px; min-width: 200px; }
+.ui-bar div { flex: 1; height: 10px; background: rgba(255, 255, 255, 0.1); border-radius: 99px; overflow: hidden; }
+.ui-bar i { display: block; height: 100%; transition: width 0.2s; }
+
+.ui-toast { background: var(--panel); border: 1px solid var(--accent); color: var(--accent); border-radius: 99px; padding: 8px 18px; font-weight: 600; animation: toast-in 0.25s ease-out; }
+@keyframes toast-in { from { transform: translateY(-12px); opacity: 0; } }
+
+.ui-menu { position: fixed; inset: 0; display: grid; place-items: center; background: rgba(5, 7, 18, 0.55); backdrop-filter: blur(3px); }
+.ui-menu-card { background: var(--panel); border: 1px solid var(--border); border-radius: 18px; padding: 28px 32px; max-width: min(640px, 92vw); text-align: center; }
+.ui-menu-card h1 { margin: 0 0 10px; font-size: 30px; }
+.ui-menu-card p { color: var(--muted); line-height: 1.6; margin: 0 0 18px; }
+.ui-menu-card .ui-button { font-size: 16px; padding: 10px 18px; }
+
+.float-text { position: absolute; left: 0; top: 0; font-weight: 800; pointer-events: none; text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6); white-space: nowrap; }
+.screen-flash { position: fixed; inset: 0; pointer-events: none; }
+.ui-top-left > .ui-button, .ui-bottom-left > .ui-button { align-self: flex-start; }
